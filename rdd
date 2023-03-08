@@ -1,0 +1,17 @@
+from pyspark.sql.functions import col, regexp_replace, to_json, struct
+import json
+
+# Assume `df` is your input DataFrame
+df_transformed = df.selectExpr(
+    "regexp_replace(to_json(struct(*)), '\\\\', '') as rawInputMsg"
+).selectExpr(
+    "regexp_replace(rawInputMsg, 'false', 'FFAALLSSEE') as rawInputMsg"
+).selectExpr(
+    "regexp_replace(rawInputMsg, 'true', 'TTRRUUEE') as rawInputMsg"
+).selectExpr(
+    "regexp_replace(rawInputMsg, 'null', 'NNUULLEE') as rawInputMsg"
+)
+
+rdd = df_transformed.rdd.map(lambda x: json.loads(x.rawInputMsg))
+rdd = rdd.map(lambda x: re.sub('"QUOTEDFFAALLSSEE"', 'false', json.dumps(x)))
+# Apply further transformations on the RDD as required
